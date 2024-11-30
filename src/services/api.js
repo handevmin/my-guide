@@ -1,4 +1,4 @@
-const API_URL = 'https://my-guide-9c4a2a9551a0.herokuapp.com';
+const API_URL = 'http://127.0.0.1:8000';
 
 export async function uploadImage(file) {
   const formData = new FormData();
@@ -16,13 +16,18 @@ export async function uploadImage(file) {
   return response.json();
 }
 
-export async function sendQuestion(question, imageData) {
-  const response = await fetch(`${API_URL}/ask-question`, {
+export async function sendQuestion(message, imageData, context = {}) {
+  const response = await fetch(`${API_URL}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ question, image_data: imageData }),
+    body: JSON.stringify({ 
+      message,
+      tourist_type: context.touristType || null,
+      weather: context.weather || null,
+      transportation: context.transportation || null
+    }),
   });
 
   if (!response.ok) {

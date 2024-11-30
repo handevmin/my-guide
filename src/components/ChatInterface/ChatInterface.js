@@ -13,8 +13,8 @@ function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [userContext, setUserContext] = useState({
     touristType: null,
-    location: null,
-    preferences: [],
+    weather: null,
+    transportation: null
   });
 
   const location = useLocation();
@@ -22,22 +22,20 @@ function ChatInterface() {
 
   // 초기 메시지 설정
   useEffect(() => {
-    if (!messages.length) {
-      const welcomeMessage = {
-        type: 'bot',
-        content: {
-          text: '안녕하세요! MyGuide AI 챗봇입니다. 어떤 도움이 필요하신가요?',
-          options: [
-            '휠체어 사용자',
-            '고령자',
-            '임산부',
-            '시각장애인',
-            '영유아 동반'
-          ]
-        }
-      };
-      setMessages([welcomeMessage]);
-    }
+    const welcomeMessage = {
+      type: 'bot',
+      content: {
+        text: '안녕하세요! 당당여행 AI 챗봇입니다. 편안한 여행을 위해 도움을 드리겠습니다.',
+        options: [
+          '휠체어 사용자',
+          '고령자',
+          '임산부',
+          '시각장애인',
+          '영유아 동반'
+        ]
+      }
+    };
+    setMessages([welcomeMessage]);
   }, []);
 
   useEffect(() => {
@@ -45,40 +43,6 @@ function ChatInterface() {
       handleSendMessage(initialQuestion);
     }
   }, [initialQuestion]);
-
-  const processUserType = (type) => {
-    setUserContext(prev => ({ ...prev, touristType: type }));
-    const categoryQuestion = {
-      type: 'bot',
-      content: {
-        text: '어떤 종류의 관광지를 선호하시나요?',
-        options: [
-          '역사·고궁·문화재',
-          '체험·공예',
-          '전시·공연·관람',
-          '자연·공원·전망대',
-          '휴양·캠핑',
-          '안내소'
-        ]
-      }
-    };
-    setMessages(prev => [...prev, { type: 'user', content: { text: type } }, categoryQuestion]);
-  };
-
-  const processCategory = (category) => {
-    setUserContext(prev => ({
-      ...prev,
-      preferences: [...prev.preferences, category]
-    }));
-    const locationQuestion = {
-      type: 'bot',
-      content: {
-        text: '어느 지역을 방문하실 예정인가요?',
-        options: ['서울', '부산', '제주', '기타']
-      }
-    };
-    setMessages(prev => [...prev, { type: 'user', content: { text: category } }, locationQuestion]);
-  };
 
   const handleSendMessage = async (text) => {
     if ((!text.trim() && !imageData) || isLoading) return;
@@ -97,7 +61,25 @@ function ChatInterface() {
     setImageData(null);
 
     try {
-      const data = await sendQuestion(text, imageData, userContext);
+      // context 정보 추가
+      const context = {
+        touristType: userContext.touristType,
+        weather: userContext.weather,
+        transportation: userContext.transportation
+      };
+
+      const data = await sendQuestion(text, imageData, context);
+      
+      // 사용자 타입이 메시지에 포함되어 있다면 컨텍스트 업데이트
+      if (text.includes('사용자') || text.includes('고령자') || 
+          text.includes('임산부') || text.includes('시각장애인') || 
+          text.includes('영유아')) {
+        setUserContext(prev => ({
+          ...prev,
+          touristType: text
+        }));
+      }
+
       const botResponse = {
         type: 'bot',
         content: { 
