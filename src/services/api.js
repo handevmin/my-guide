@@ -1,4 +1,4 @@
-const API_URL = 'http://127.0.0.1:8000';
+const API_URL = 'https://my-guide-9c4a2a9551a0.herokuapp.com';
 
 export async function uploadImage(file) {
   const formData = new FormData();
